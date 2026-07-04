@@ -137,6 +137,8 @@ p { margin: .3em 0 .8em; }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .btn-ghost { background: var(--surface-2); color: var(--text); border-color: var(--border); }
 .btn-ghost:hover { background: var(--border); }
+.btn-danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+.btn-danger:hover { background: var(--bad); color: #fff; }
 .btn-google { background: #fff; color: #1f2937; border: 1px solid #dadce0;
   width: 100%; font-weight: 600; }
 .btn-google:hover { box-shadow: 0 1px 4px rgba(0,0,0,.15); }

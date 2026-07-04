@@ -21,6 +21,7 @@
     <a class="btn btn-ghost" href="{{ url_for('history.download', analysis_id=analysis.id, fmt='txt') }}">⬇ TXT</a>
     <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
     <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Re-analyze</a>
+    <button class="btn btn-danger" id="delete-analysis" data-id="{{ analysis.id }}">🗑 Delete</button>
   </div>
 </section>
 

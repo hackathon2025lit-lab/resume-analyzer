@@ -31,7 +31,7 @@ def upload():
     if not allowed_file(file.filename):
         return jsonify(
             ok=False,
-            error="Invalid file type. Only PDF and DOCX are allowed."), 400
+            error="Invalid file type. Only PDF, DOCX and ZIP are allowed."), 400
 
     # Size check (Flask MAX_CONTENT_LENGTH also enforces the hard limit).
     file.seek(0, 2)

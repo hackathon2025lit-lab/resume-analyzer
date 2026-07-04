@@ -2,7 +2,8 @@
 
 A production-ready **AI Resume Analyzer** web application built with **Flask +
 Python**, vanilla **HTML/CSS/JS**, **SQLite**, **Google Sign-In (OAuth 2.0)**
-and the **Google Gemini API**. Upload a resume (PDF/DOCX), pick weighted
+and the **Google Gemini API**. Upload a resume (PDF, DOCX or a ZIP archive
+containing one), pick weighted
 evaluation criteria and a target role, and get ATS scores, keyword insights,
 skills-gap analysis, grammar checks, charts and downloadable reports.
 
@@ -18,8 +19,10 @@ are generated only after a successful analysis.
   protected routes.
 - **Dashboard** with live stats (all `0` until you analyze), upload, criteria
   selection, job-role selection and history.
-- **Resume upload**: drag & drop or browse, PDF/DOCX, 10 MB limit, format
-  validation, upload progress, filename display and remove option.
+- **Resume upload**: drag & drop or browse, PDF/DOCX/ZIP, 10 MB limit, format
+  validation, upload progress, filename display and remove option. ZIP archives
+  are unpacked and the first PDF/DOCX inside is analyzed.
+- **Delete analyses** from the history page or directly from a results page.
 - **Resume parsing** (pdfplumber + PyMuPDF fallback, python-docx): name, email,
   phone, address, skills, technical/soft skills, education, certifications,
   experience, projects, languages, achievements, internships, GitHub, LinkedIn.
@@ -121,7 +124,7 @@ not demo data.
 ## Security notes
 - Secrets are read from environment variables and never committed (`.env` is
   git-ignored).
-- Uploaded filenames are sanitized; uploads are restricted to PDF/DOCX and a
+- Uploaded filenames are sanitized; uploads are restricted to PDF/DOCX/ZIP and a
   10 MB limit; file paths are validated against the uploads directory.
 - Session cookies are `HttpOnly` with `SameSite=Lax`.
 

@@ -1,5 +1,20 @@
 // Reads the embedded analysis JSON and renders all charts.
 (function () {
+  const deleteBtn = document.getElementById('delete-analysis');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      const id = deleteBtn.dataset.id;
+      if (!confirm('Delete this analysis? This cannot be undone.')) return;
+      fetch('/history/' + id, { method: 'DELETE' })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) window.location.href = '/history/';
+          else alert('Could not delete the analysis.');
+        })
+        .catch(() => alert('Network error while deleting.'));
+    });
+  }
+
   const dataEl = document.getElementById('analysis-data');
   if (!dataEl) return;
   let data = {};

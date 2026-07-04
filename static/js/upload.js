@@ -81,7 +81,7 @@
   // ---- File selection ----
   function validate(file) {
     const ext = file.name.split('.').pop().toLowerCase();
-    if (!['pdf', 'docx'].includes(ext)) return 'Invalid file type. Only PDF and DOCX are allowed.';
+    if (!['pdf', 'docx', 'zip'].includes(ext)) return 'Invalid file type. Only PDF, DOCX and ZIP are allowed.';
     if (file.size > MAX_BYTES) return 'File too large. Maximum size is 10 MB.';
     if (file.size === 0) return 'The file is empty.';
     return null;

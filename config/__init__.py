@@ -51,7 +51,7 @@ class Config:
     MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH_MB * 1024 * 1024
     UPLOAD_DIR = BASE_DIR / "uploads"
     REPORT_DIR = BASE_DIR / "reports"
-    ALLOWED_EXTENSIONS = {"pdf", "docx"}
+    ALLOWED_EXTENSIONS = {"pdf", "docx", "zip"}
 
     # Database
     DATABASE_PATH = BASE_DIR / os.getenv("DATABASE_PATH", "database/app.db")

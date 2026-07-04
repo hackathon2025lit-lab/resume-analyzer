@@ -10,11 +10,16 @@ This keeps the "always works" contract even when the AI service is offline.
 from __future__ import annotations
 
 import re
+import tempfile
+import zipfile
 from pathlib import Path
 
 import pdfplumber
 import fitz  # PyMuPDF
 from docx import Document
+
+# Resume file types we can read directly (i.e. not archives).
+DOCUMENT_EXTENSIONS = ("pdf", "docx")
 
 # ---------------------------------------------------------------------------
 # Text extraction
@@ -26,7 +31,35 @@ def extract_text(path: Path, ext: str) -> str:
         return _extract_pdf(path)
     if ext == "docx":
         return _extract_docx(path)
+    if ext == "zip":
+        return _extract_zip(path)
     raise ValueError(f"Unsupported file type: {ext}")
+
+
+def _extract_zip(path: Path) -> str:
+    """Extract text from the first PDF/DOCX resume inside a ZIP archive."""
+    try:
+        with zipfile.ZipFile(str(path)) as archive:
+            members = [
+                m for m in archive.namelist()
+                if not m.endswith("/")
+                and not Path(m).name.startswith((".", "__"))
+                and Path(m).suffix.lower().lstrip(".") in DOCUMENT_EXTENSIONS
+            ]
+            if not members:
+                raise ValueError(
+                    "The ZIP archive contains no PDF or DOCX resume.")
+            members.sort()
+            member = members[0]
+            inner_ext = Path(member).suffix.lower().lstrip(".")
+            with tempfile.TemporaryDirectory() as tmp:
+                # Extract only the chosen member, guarding against zip-slip.
+                target = Path(tmp) / Path(member).name
+                with archive.open(member) as src, open(target, "wb") as dst:
+                    dst.write(src.read())
+                return extract_text(target, inner_ext)
+    except zipfile.BadZipFile as exc:
+        raise ValueError(f"Could not read ZIP archive: {exc}") from exc
 
 
 def _extract_pdf(path: Path) -> str:
