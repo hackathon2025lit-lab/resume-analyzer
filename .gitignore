@@ -1,0 +1,30 @@
+# Environment
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Flask / instance
+instance/
+*.db
+*.sqlite3
+database/*.db
+
+# Uploads & generated reports (runtime user data)
+uploads/*
+!uploads/.gitkeep
+reports/*
+!reports/.gitkeep
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}History · AI Resume Analyzer{% endblock %}
+
+{% block content %}
+<section class="analysis-head">
+  <div>
+    <h1>Analysis History</h1>
+    <p class="muted">View, search, sort, download and manage your analyses.</p>
+  </div>
+  <div class="analysis-actions">
+    <a class="btn btn-ghost" href="{{ url_for('history.export') }}">⬇ Export JSON</a>
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">+ New analysis</a>
+  </div>
+</section>
+
+<section class="card">
+  <form class="history-controls" method="get" action="{{ url_for('history.index') }}">
+    <input class="input" type="search" name="q" value="{{ search }}"
+           placeholder="Search by resume or role…" />
+    <select class="select" name="sort" onchange="this.form.submit()">
+      <option value="newest" {{ 'selected' if sort=='newest' }}>Newest first</option>
+      <option value="oldest" {{ 'selected' if sort=='oldest' }}>Oldest first</option>
+      <option value="score_high" {{ 'selected' if sort=='score_high' }}>Score: high → low</option>
+      <option value="score_low" {{ 'selected' if sort=='score_low' }}>Score: low → high</option>
+      <option value="ats_high" {{ 'selected' if sort=='ats_high' }}>ATS: high → low</option>
+    </select>
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+
+  {% if items %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Resume</th><th>Role</th><th>Overall</th><th>ATS</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for a in items %}
+        <tr data-id="{{ a.id }}">
+          <td>{{ a.resume_name }}</td>
+          <td>{{ a.job_role }}</td>
+          <td><span class="pill">{{ a.overall_score }}</span></td>
+          <td><span class="pill">{{ a.ats_score }}</span></td>
+          <td class="muted">{{ a.created_at }}</td>
+          <td class="row-actions">
+            <a class="link" href="{{ url_for('resume.view_analysis', analysis_id=a.id) }}">View</a>
+            <a class="link" href="{{ url_for('history.download', analysis_id=a.id, fmt='pdf') }}">PDF</a>
+            <a class="link" href="{{ url_for('history.download', analysis_id=a.id, fmt='txt') }}">TXT</a>
+            <button class="link danger delete-analysis" data-id="{{ a.id }}">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">🗂️</div>
+    <p>No analyses found. {% if search %}Try a different search.{% else %}Upload a resume to begin.{% endif %}</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}
