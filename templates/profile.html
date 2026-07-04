@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Profile · AI Resume Analyzer{% endblock %}
+
+{% block content %}
+<section class="analysis-head">
+  <div><h1>Your Profile</h1><p class="muted">Account details and activity.</p></div>
+</section>
+
+<div class="grid-2">
+  <section class="card profile-card">
+    <div class="profile-avatar">
+      {% if user.picture %}
+        <img src="{{ user.picture }}" alt="avatar" referrerpolicy="no-referrer" />
+      {% else %}
+        <span class="avatar-fallback lg">{{ user.name[0]|upper }}</span>
+      {% endif %}
+    </div>
+    <h2>{{ user.name }}</h2>
+    <p class="muted">{{ user.email }}</p>
+    <dl class="profile-meta">
+      <div><dt>Member since</dt><dd>{{ user.created_at }}</dd></div>
+      <div><dt>Last login</dt><dd>{{ user.last_login_at }}</dd></div>
+    </dl>
+    <a class="btn btn-ghost full" href="{{ url_for('auth.logout') }}">Logout</a>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">Statistics</h2>
+    <div class="stat-grid inner">
+      <div class="stat-card gradient-1"><div class="stat-value">{{ stats.total_analyses }}</div><div class="stat-label">Total Analyses</div></div>
+      <div class="stat-card gradient-2"><div class="stat-value">{{ stats.avg_ats }}</div><div class="stat-label">Avg ATS Score</div></div>
+      <div class="stat-card gradient-3"><div class="stat-value">{{ stats.avg_overall }}</div><div class="stat-label">Avg Resume Score</div></div>
+      <div class="stat-card gradient-4"><div class="stat-value">{{ stats.best_overall }}</div><div class="stat-label">Best Score</div></div>
+    </div>
+
+    <h3 class="card-subtitle mt">Recent activity</h3>
+    {% if recent %}
+    <ul class="activity">
+      {% for a in recent %}
+      <li>
+        <a class="link" href="{{ url_for('resume.view_analysis', analysis_id=a.id) }}">{{ a.resume_name }}</a>
+        <span class="muted">· {{ a.job_role }} · overall {{ a.overall_score }} · {{ a.created_at }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">No activity yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

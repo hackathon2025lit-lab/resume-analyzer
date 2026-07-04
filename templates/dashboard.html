@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · AI Resume Analyzer{% endblock %}
+
+{% block content %}
+<section class="welcome">
+  <div>
+    <h1>Welcome back, {{ current_user.name.split(' ')[0] }} 👋</h1>
+    <p class="muted">Upload a resume, pick your criteria and let AI analyze it.</p>
+  </div>
+</section>
+
+<section class="stat-grid">
+  <div class="stat-card gradient-1">
+    <div class="stat-value">{{ stats.total_analyses }}</div>
+    <div class="stat-label">Total Analyses</div>
+  </div>
+  <div class="stat-card gradient-2">
+    <div class="stat-value">{{ stats.avg_ats }}</div>
+    <div class="stat-label">Avg ATS Score</div>
+  </div>
+  <div class="stat-card gradient-3">
+    <div class="stat-value">{{ stats.avg_overall }}</div>
+    <div class="stat-label">Avg Resume Score</div>
+  </div>
+  <div class="stat-card gradient-4">
+    <div class="stat-value">{{ stats.best_overall }}</div>
+    <div class="stat-label">Best Score</div>
+  </div>
+</section>
+
+<div class="grid-2">
+  <!-- Upload + config -->
+  <section class="card">
+    <h2 class="card-title">1 · Upload Resume</h2>
+    <form id="upload-form">
+      <div id="dropzone" class="dropzone" tabindex="0">
+        <input type="file" id="file-input" accept=".pdf,.docx" hidden />
+        <div class="dz-icon">⬆️</div>
+        <p class="dz-text"><strong>Drag &amp; drop</strong> your resume here</p>
+        <p class="muted tiny">PDF or DOCX · max 10 MB</p>
+        <button type="button" class="btn btn-primary" id="browse-btn">Browse file</button>
+      </div>
+
+      <div id="file-preview" class="file-preview hidden">
+        <div class="fp-info">
+          <span class="fp-icon">📄</span>
+          <div>
+            <div id="fp-name" class="fp-name"></div>
+            <div id="fp-size" class="muted tiny"></div>
+          </div>
+        </div>
+        <button type="button" class="icon-btn" id="remove-file" title="Remove">🗑️</button>
+      </div>
+
+      <div id="progress-wrap" class="progress-wrap hidden">
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <span id="progress-text" class="muted tiny">0%</span>
+      </div>
+      <div id="upload-msg" class="inline-msg"></div>
+    </form>
+  </section>
+
+  <!-- Criteria + role -->
+  <section class="card">
+    <h2 class="card-title">2 · Criteria &amp; Job Role</h2>
+
+    <label class="field-label" for="job-role">Target role</label>
+    <select id="job-role" class="select">
+      {% for role in job_roles %}
+        <option value="{{ role }}" {% if role == 'Software Engineer' %}selected{% endif %}>{{ role }}</option>
+      {% endfor %}
+    </select>
+    <input id="custom-role" class="input hidden" type="text"
+           placeholder="Enter your custom role" />
+
+    <div class="criteria-head">
+      <label class="field-label">Evaluation criteria &amp; weights</label>
+      <span class="weight-total">Total: <strong id="weight-total">0</strong>%</span>
+    </div>
+
+    <div class="criteria-list">
+      {% for c in criteria %}
+      <div class="criterion">
+        <label class="checkbox">
+          <input type="checkbox" class="crit-check" data-key="{{ c.key }}"
+                 {% if c.default > 0 %}checked{% endif %} />
+          <span>{{ c.label }}</span>
+        </label>
+        <div class="slider-wrap">
+          <input type="range" class="crit-slider" data-key="{{ c.key }}"
+                 min="0" max="100" step="5" value="{{ c.default }}"
+                 {% if c.default == 0 %}disabled{% endif %} />
+          <span class="crit-val" data-key="{{ c.key }}">{{ c.default }}%</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <label class="checkbox mt">
+      <input type="checkbox" id="delete-after" />
+      <span>Delete uploaded resume file after analysis</span>
+    </label>
+
+    <button id="analyze-btn" class="btn btn-primary full mt" disabled>
+      <span class="btn-label">Analyze Resume</span>
+      <span class="spinner hidden"></span>
+    </button>
+    <div id="analyze-msg" class="inline-msg"></div>
+  </section>
+</div>
+
+<!-- Recent history -->
+<section class="card mt">
+  <div class="card-title-row">
+    <h2 class="card-title">Previous Analysis History</h2>
+    <a class="btn btn-ghost" href="{{ url_for('history.index') }}">View all</a>
+  </div>
+  {% if recent %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Resume</th><th>Role</th><th>Overall</th><th>ATS</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        {% for a in recent %}
+        <tr>
+          <td>{{ a.resume_name }}</td>
+          <td>{{ a.job_role }}</td>
+          <td><span class="pill">{{ a.overall_score }}</span></td>
+          <td><span class="pill">{{ a.ats_score }}</span></td>
+          <td class="muted">{{ a.created_at }}</td>
+          <td><a class="link" href="{{ url_for('resume.view_analysis', analysis_id=a.id) }}">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">📭</div>
+    <p>No analyses yet. Upload a resume to get started.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

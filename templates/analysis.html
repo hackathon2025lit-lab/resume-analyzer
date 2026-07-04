@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Analysis · {{ analysis.resume_name }}{% endblock %}
+
+{% block content %}
+<section class="analysis-head">
+  <div>
+    <a class="link back" href="{{ url_for('history.index') }}">← Back to history</a>
+    <h1>Analysis Results</h1>
+    <p class="muted">
+      {{ analysis.resume_name }} · Role: <strong>{{ analysis.job_role }}</strong>
+      · {{ analysis.created_at }}
+      {% if result.engine == 'gemini' %}
+        <span class="badge badge-ai">Gemini AI</span>
+      {% else %}
+        <span class="badge badge-warn">Offline analyzer</span>
+      {% endif %}
+    </p>
+  </div>
+  <div class="analysis-actions no-print">
+    <a class="btn btn-ghost" href="{{ url_for('history.download', analysis_id=analysis.id, fmt='pdf') }}">⬇ PDF</a>
+    <a class="btn btn-ghost" href="{{ url_for('history.download', analysis_id=analysis.id, fmt='txt') }}">⬇ TXT</a>
+    <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Re-analyze</a>
+  </div>
+</section>
+
+<!-- Score summary -->
+<section class="grid-3">
+  <div class="card center">
+    <h3 class="card-subtitle">Overall Resume Score</h3>
+    <canvas id="gauge-overall" width="180" height="180"
+            data-value="{{ result.overall_score }}"></canvas>
+    <div class="readiness">{{ result.industry_readiness }}</div>
+  </div>
+  <div class="card center">
+    <h3 class="card-subtitle">ATS Score</h3>
+    <canvas id="gauge-ats" width="180" height="180"
+            data-value="{{ result.ats_score }}"></canvas>
+    <div class="readiness">Career: {{ result.career_level }}</div>
+  </div>
+  <div class="card center">
+    <h3 class="card-subtitle">Keyword Match</h3>
+    <canvas id="gauge-keyword" width="180" height="180"
+            data-value="{{ result.keyword_match }}"></canvas>
+    <div class="readiness">{{ result.matched_keywords|length }} keywords matched</div>
+  </div>
+</section>
+
+<!-- Category bar chart -->
+<section class="card mt">
+  <h2 class="card-title">Category Scores</h2>
+  <canvas id="bar-categories" height="260"></canvas>
+</section>
+
+<div class="grid-2 mt">
+  <section class="card">
+    <h2 class="card-title good">✅ Strengths</h2>
+    <ul class="bullet-list">
+      {% for s in result.strengths %}<li>{{ s }}</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="card">
+    <h2 class="card-title bad">⚠️ Weaknesses</h2>
+    <ul class="bullet-list">
+      {% for w in result.weaknesses %}<li>{{ w }}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<!-- ATS scanner detail -->
+<section class="card mt">
+  <h2 class="card-title">ATS Scanner</h2>
+  <div class="ats-checks">
+    {% for c in result.ats_details.checks %}
+    <div class="ats-check {{ 'pass' if c.passed else 'fail' }}">
+      <span class="ats-mark">{{ '✓' if c.passed else '✕' }}</span>
+      <div>
+        <div class="ats-name">{{ c.name }}</div>
+        <div class="muted tiny">{{ c.detail }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="grid-2 mt">
+  <!-- Keyword analyzer -->
+  <section class="card">
+    <h2 class="card-title">Keyword Analyzer</h2>
+    <h4 class="mini-h">Missing keywords</h4>
+    <div class="chips">
+      {% for k in result.missing_keywords %}<span class="chip chip-bad">{{ k }}</span>{% else %}<span class="muted">None 🎉</span>{% endfor %}
+    </div>
+    <h4 class="mini-h">Recommended</h4>
+    <div class="chips">
+      {% for k in result.recommended_keywords %}<span class="chip chip-info">{{ k }}</span>{% else %}<span class="muted">—</span>{% endfor %}
+    </div>
+    <h4 class="mini-h">Repeated</h4>
+    <div class="chips">
+      {% for r in result.repeated_keywords %}<span class="chip">{{ r.word }} ×{{ r.count }}</span>{% else %}<span class="muted">None</span>{% endfor %}
+    </div>
+  </section>
+
+  <!-- Skills gap -->
+  <section class="card">
+    <h2 class="card-title">Skills Gap Analysis</h2>
+    <h4 class="mini-h">Missing skills</h4>
+    <div class="chips">
+      {% for s in result.skills_gap.missing_skills %}<span class="chip chip-bad">{{ s }}</span>{% else %}<span class="muted">None 🎉</span>{% endfor %}
+    </div>
+    <h4 class="mini-h">Learning roadmap</h4>
+    <ol class="roadmap">
+      {% for step in result.skills_gap.roadmap %}
+        <li><strong>{{ step.skill }}</strong> — {{ step.action }}</li>
+      {% else %}<li class="muted">You're covered for this role.</li>{% endfor %}
+    </ol>
+  </section>
+</div>
+
+<!-- Grammar -->
+<section class="card mt">
+  <h2 class="card-title">Grammar &amp; Writing</h2>
+  {% if result.grammar_issues %}
+  <ul class="bullet-list">
+    {% for g in result.grammar_issues %}
+      <li><span class="tag">{{ g.type }}</span> {{ g.message }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">No grammar issues detected.</p>{% endif %}
+</section>
+
+<!-- Improvements -->
+<section class="card mt">
+  <div class="card-title-row">
+    <h2 class="card-title">Resume Improvement Suggestions</h2>
+    <button class="btn btn-ghost no-print" data-copy="#improved-summary">📋 Copy summary</button>
+  </div>
+  <h4 class="mini-h">Improved professional summary</h4>
+  <p id="improved-summary" class="quote">{{ result.improved.summary }}</p>
+
+  <div class="grid-2">
+    <div>
+      <h4 class="mini-h">Better project descriptions</h4>
+      <ul class="bullet-list">{% for i in result.improved.project_descriptions %}<li>{{ i }}</li>{% endfor %}</ul>
+    </div>
+    <div>
+      <h4 class="mini-h">Better experience descriptions</h4>
+      <ul class="bullet-list">{% for i in result.improved.experience_descriptions %}<li>{{ i }}</li>{% endfor %}</ul>
+    </div>
+  </div>
+  <h4 class="mini-h">Skills ordering</h4>
+  <p>{{ result.improved.skills_ordering }}</p>
+  <h4 class="mini-h">Formatting suggestions</h4>
+  <ul class="bullet-list">{% for i in result.improved.formatting_suggestions %}<li>{{ i }}</li>{% endfor %}</ul>
+</section>
+
+<!-- Reviews + actionable -->
+<div class="grid-2 mt">
+  <section class="card">
+    <h2 class="card-title">Reviews</h2>
+    <p><strong>Summary:</strong> {{ result.professional_summary_review }}</p>
+    <p><strong>Projects:</strong> {{ result.project_review }}</p>
+    <p><strong>Achievements:</strong> {{ result.achievements_review }}</p>
+    <p><strong>Length:</strong> {{ result.resume_length_review }}</p>
+    {% if result.formatting_issues %}
+      <p><strong>Formatting issues:</strong></p>
+      <ul class="bullet-list">{% for f in result.formatting_issues %}<li>{{ f }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if result.duplicate_content %}
+      <p><strong>Duplicate content:</strong></p>
+      <ul class="bullet-list">{% for d in result.duplicate_content %}<li>{{ d }}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+  <section class="card">
+    <div class="card-title-row">
+      <h2 class="card-title">Actionable Suggestions</h2>
+      <button class="btn btn-ghost no-print" data-copy="#actionable">📋 Copy</button>
+    </div>
+    <ul id="actionable" class="bullet-list">
+      {% for s in result.actionable_suggestions %}<li>{{ s }}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<script id="analysis-data" type="application/json">{{ result_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+{% endblock %}
